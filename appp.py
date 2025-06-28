@@ -89,4 +89,4 @@ if st.button("Get Recommendations"):
         st.image("https://source.unsplash.com/800x400/?healthy-food", caption="Eat well, feel better! 💚")
 
 st.markdown("---")
-st.markdown("Made with ❤️ using Streamlit")
+
