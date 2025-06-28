@@ -1,5 +1,13 @@
 import streamlit as st
 
+st.set_page_config(page_title="Emotion-Aware Diet Recommendation", page_icon="🥗", layout="centered")
+
+st.title("🥗 Emotion-Aware Diet Recommendation System")
+st.markdown("""
+Welcome! This app recommends meals based on your **emotions**, **health goals**, and **cuisine preference**.
+Stay healthy and happy! 🌟
+""")
+
 def detect_emotion(text):
     text = text.lower()
     if "sad" in text:
@@ -15,28 +23,30 @@ def detect_emotion(text):
 
 nutrition_info_indian = {
     "Poha": {"Calories": 250, "Protein": 5, "Carbs": 50, "Fats": 6},
-    "Upma": {"Calories": 220, "Protein": 6, "Carbs": 45, "Fats": 5},
-    "Dal chawal": {"Calories": 350, "Protein": 12, "Carbs": 60, "Fats": 8},
-    "Roti sabzi": {"Calories": 300, "Protein": 8, "Carbs": 55, "Fats": 7},
-    "Vegetable biryani": {"Calories": 400, "Protein": 8, "Carbs": 70, "Fats": 10},
     "Paneer tikka": {"Calories": 280, "Protein": 15, "Carbs": 10, "Fats": 18},
-    "Idli sambhar": {"Calories": 280, "Protein": 10, "Carbs": 55, "Fats": 4},
-    "Dhokla": {"Calories": 150, "Protein": 6, "Carbs": 25, "Fats": 4},
-    "Rajma chawal": {"Calories": 420, "Protein": 14, "Carbs": 75, "Fats": 8},
-    "Masala oats": {"Calories": 200, "Protein": 7, "Carbs": 35, "Fats": 5},
+    "Dal chawal": {"Calories": 350, "Protein": 12, "Carbs": 60, "Fats": 8},
 }
 
 nutrition_info_western = {
     "Dark chocolate": {"Calories": 170, "Protein": 2, "Carbs": 19, "Fats": 12},
     "Nuts": {"Calories": 180, "Protein": 6, "Carbs": 6, "Fats": 16},
     "Warm soup": {"Calories": 100, "Protein": 4, "Carbs": 15, "Fats": 2},
-    "Salad with fruits": {"Calories": 120, "Protein": 3, "Carbs": 20, "Fats": 4},
-    "Smoothie bowl": {"Calories": 250, "Protein": 5, "Carbs": 40, "Fats": 6},
-    "Balanced thali": {"Calories": 500, "Protein": 15, "Carbs": 60, "Fats": 15},
-    "Vegetable stir fry": {"Calories": 200, "Protein": 6, "Carbs": 25, "Fats": 8},
 }
 
-def recommend_meals(emotion, goal, cuisine):
+st.header("💬 Tell us how you feel today")
+user_input = st.text_input("Describe your mood (e.g., I feel happy, sad, anxious...)")
+
+st.header("🎯 Choose your health goal")
+goal = st.selectbox("Select your goal:", ["Weight loss", "Muscle gain", "Maintenance", "Improve energy", "Improve mood"])
+
+st.header("🍽️ Choose your cuisine")
+cuisine = st.selectbox("Preferred cuisine:", ["Indian", "Western"])
+
+placeholder = st.empty()
+
+if st.button("Get Recommendations"):
+    emotion = detect_emotion(user_input)
+    
     if cuisine == "Indian":
         meals = ["Poha", "Paneer tikka", "Dal chawal"]
         nutrition = nutrition_info_indian
@@ -44,53 +54,39 @@ def recommend_meals(emotion, goal, cuisine):
         meals = ["Dark chocolate", "Nuts", "Warm soup"]
         nutrition = nutrition_info_western
 
-    if goal == "Weight loss":
-        meals = [meal + " (low-calorie focus)" for meal in meals]
-    elif goal == "Muscle gain":
-        meals = [meal + " (high-protein focus)" for meal in meals]
-    elif goal == "Improve energy":
-        meals = [meal + " (extra carbs for energy)" for meal in meals]
-    elif goal == "Improve mood":
-        meals = [meal + " (mood-boosting ingredients)" for meal in meals]
-    elif goal == "Maintenance":
-        meals = [meal + " (balanced)" for meal in meals]
+    goal_addition = {
+        "Weight loss": "(low-calorie focus)",
+        "Muscle gain": "(high-protein focus)",
+        "Maintenance": "(balanced)",
+        "Improve energy": "(extra carbs for energy)",
+        "Improve mood": "(mood-boosting ingredients)"
+    }
 
-    return meals, nutrition
+    meals = [meal + f" {goal_addition[goal]}" for meal in meals]
 
-st.title("Emotion-Aware Diet Recommendation System")
-
-user_input = st.text_input("How are you feeling today?")
-
-goal = st.selectbox(
-    "What is your health or dietary goal?",
-    ["Weight loss", "Muscle gain", "Maintenance", "Improve energy", "Improve mood"]
-)
-
-cuisine = st.selectbox(
-    "Which cuisine do you prefer?",
-    ["Indian", "Western"]
-)
-
-placeholder = st.empty()
-
-if st.button("Get Recommendations"):
     with placeholder.container():
-        emotion = detect_emotion(user_input)
-        st.write("## Your Personalized Recommendations")
-        st.write(f"Detected Emotion: **{emotion}**")
-        st.write(f"Selected Goal: **{goal}**")
-        st.write(f"Cuisine Preference: **{cuisine}**")
+        st.success("Your personalized recommendations are ready! 🎉")
+        st.subheader("✨ Summary")
+        st.write(f"**Emotion detected:** {emotion}")
+        st.write(f"**Goal:** {goal}")
+        st.write(f"**Cuisine preference:** {cuisine}")
 
-        recommended_meals, nutrition = recommend_meals(emotion, goal, cuisine)
-        st.write("### Recommended Meals for You:")
-
-        for meal in recommended_meals:
+        st.header("🍲 Recommended Meals")
+        for meal in meals:
             base_meal = meal.split(" (")[0]
             st.write(f"• {meal}")
 
             if base_meal in nutrition:
                 info = nutrition[base_meal]
-                st.write(f"  Calories: {info['Calories']} kcal")
-                st.write(f"  Protein: {info['Protein']} g")
-                st.write(f"  Carbs: {info['Carbs']} g")
-                st.write(f"  Fats: {info['Fats']} g")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("Calories", f"{info['Calories']} kcal")
+                    st.metric("Protein", f"{info['Protein']} g")
+                with col2:
+                    st.metric("Carbs", f"{info['Carbs']} g")
+                    st.metric("Fats", f"{info['Fats']} g")
+
+        st.image("https://source.unsplash.com/800x400/?healthy-food", caption="Eat well, feel better! 💚")
+
+st.markdown("---")
+st.markdown("Made with ❤️ using Streamlit")
