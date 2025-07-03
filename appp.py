@@ -1,4 +1,9 @@
 import streamlit as st
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
+tokenizer = AutoTokenizer.from_pretrained("bhadresh-savani/distilbert-base-uncased-emotion")
+model = AutoModelForSequenceClassification.from_pretrained("bhadresh-savani/distilbert-base-uncased-emotion")
+
 
 st.set_page_config(page_title="Emotion-Aware Diet Recommendation", page_icon="🥗", layout="centered")
 
@@ -9,17 +14,13 @@ Stay healthy and happy! 🌟
 """)
 
 def detect_emotion(text):
-    text = text.lower()
-    if "sad" in text:
-        return "Sad"
-    elif "happy" in text:
-        return "Happy"
-    elif "angry" in text:
-        return "Angry"
-    elif "anxious" in text or "worried" in text:
-        return "Anxious"
-    else:
-        return "Neutral"
+  
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
+    outputs = model(**inputs)
+    probs = torch.nn.functional.softmax(outputs.logits, dim=1)
+    predicted_class = probs.argmax().item()
+    emotion_labels = ["anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
+    return emotion_labels[predicted_class]
 
 nutrition_info_indian = {
     "Poha": {"Calories": 250, "Protein": 5, "Carbs": 50, "Fats": 6},
